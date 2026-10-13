@@ -5,18 +5,22 @@ fs = require('fs')
 base64 = '$0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz'
 
 function resolve (f, file) {
-  if (f.indexOf('./') == 0) {
-    f = f.slice(2)
+  while (f.indexOf('../') == 0) {
+    f = f.slice(3)
+    file = file.slice(0, file.lastIndexOf('/'))
   }
-  i = f[0]
-  if (i != '.' && i != '/') {
-    f = file.slice(0, file.lastIndexOf('/')) + '/' + f
-  } else if (f.indexOf('../') == 0) {
-    while (f.indexOf('../') == 0) {
-      f = f.slice(3)
-      file = file.slice(0, file.lastIndexOf('/'))
+  f = file.slice(0, file.lastIndexOf('/')) + '/' + f
+  treats = ['', '/', '', '', '/', '\\', '']
+  tricks = ['~', ':', './', '.\\', '//', '\\\\', '../']
+  for (i = 0, length = treats.length; i < length; i++) {
+    treat = treats[i]
+    trick = tricks[i]
+    while (f.indexOf(trick) != -1) {
+      f = f.replaceAll(trick, treat)
     }
-    f = file.slice(0, file.lastIndexOf('/')) + '/' + f
+  }
+  while (f[0] == '/') {
+    f = f.slice(1)
   }
   if (f.slice(-3) != '.js') {
     f += '.js'
