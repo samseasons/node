@@ -13,18 +13,20 @@ types = {
 function serve (folder, port) {
   folder = folder || 'a'
   port = port || 1234
-  index = '/x.html'
+  var index = '/x.html'
   if (folder.slice(-5) == '.html') {
-    if ((i = folder.lastIndexOf('/')) != -1) {
+    var i = folder.lastIndexOf('/')
+    if (i != -1) {
       index = folder.slice(i)
       folder = folder.slice(0, i)
     }
   }
-  server = http.createServer(function (request, response) {
-    file = request.url
+  var server = http.createServer(function (request, response) {
+    var file = request.url
     if (file[0] == '/' && file.indexOf('..') == -1) {
+      console.log(file)
       file = file.replaceAll('%20', ' ')
-      type = file.slice(file.lastIndexOf('.') + 1)
+      var type = file.slice(file.lastIndexOf('.') + 1)
       if (type in types) {
         type = types[type]
       } else {

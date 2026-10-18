@@ -10,17 +10,19 @@ function resolve (f, file) {
     file = file.slice(0, file.lastIndexOf('/'))
   }
   f = file.slice(0, file.lastIndexOf('/')) + '/' + f
-  treats = ['', '/', '', '', '/', '\\', '']
-  tricks = ['~', ':', './', '.\\', '//', '\\\\', '../']
-  for (i = 0, length = treats.length; i < length; i++) {
-    treat = treats[i]
-    trick = tricks[i]
+  var treats = ['', '/', '', '', '/', '\\', '']
+  var tricks = ['~', ':', './', '.\\', '//', '\\\\', '../']
+  for (var i = 0, length = treats.length; i < length; i++) {
+    var treat = treats[i]
+    var trick = tricks[i]
     while (f.indexOf(trick) != -1) {
       f = f.replaceAll(trick, treat)
     }
   }
-  while (f[0] == '/') {
+  var i = f[0]
+  while (i == '/' || i == '\\') {
     f = f.slice(1)
+    i = f[0]
   }
   if (f.slice(-3) != '.js') {
     f += '.js'
@@ -28,33 +30,20 @@ function resolve (f, file) {
   return f
 }
 
-function substitute (match, next, text) {
-  a = text.indexOf(match)
-  j = match.length
-  k = next.length
-  while (a != -1) {
-    if (base64.indexOf(text[a + j]) != -1 || (a != 0 && (base64 + '"\'.').indexOf(text[a - 1]) != -1)) {
-      a = text.indexOf(match, a + j)
-    } else {
-      text = text.slice(0, a) + next + text.slice(a + j)
-      a = text.indexOf(match, a + k)
-    }
-  }
-  return text
-}
-
 function parse (file, modules, texts) {
+  var text
   if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
     text = fs.readFileSync(file, 'utf8')
   } else {
     texts[file] = ''
     return
   }
-  lines = text.split('\n')
-  remove = false
+  var lines = text.split('\n')
+  var remove = false
   text = ''
-  for (i = 0, length = lines.length; i < length; i++) {
-    line = lines[i]
+  var i, j, k
+  for (var i = 0, length = lines.length; i < length; i++) {
+    var line = lines[i]
     if (line.replace(/^\s+/, '').indexOf('//') == 0) {
       continue
     }
@@ -79,11 +68,11 @@ function parse (file, modules, texts) {
       text += line + '\n'
     }
   }
-  defaults = {}
-  exports = {}
+  var defaults = {}
+  var exports = {}
   exports[file] = {}
-  order = []
-  texta = text
+  var order = []
+  var texta = text
   while ((i = text.indexOf('import ')) != -1) {
     if (i != 0) {
       j = text[i - 1]
@@ -96,14 +85,14 @@ function parse (file, modules, texts) {
     while (text[i] == ' ') {
       i += 1
     }
-    defaulted = ''
-    names = {}
+    var defaulted = ''
+    var names = {}
     text = text.slice(i)
     i = text.indexOf('from')
     j = text.indexOf('"')
     k = text.indexOf("'")
     if (i != -1 && (i < j || j == -1) && (i < k || k == -1)) {
-      length = text.length
+      var length = text.length
       while (i < length) {
         j = text[i - 1]
         k = text[i + 4]
@@ -113,13 +102,13 @@ function parse (file, modules, texts) {
         i += 4
         i += text.slice(i).indexOf('from')
       }
-      variables = text.slice(0, i)
+      var variables = text.slice(0, i)
       if ((j = variables.indexOf('{')) != -1) {
         k = variables.indexOf('}')
-        split = variables.slice(j + 1, k).split(',')
+        var split = variables.slice(j + 1, k).split(',')
         variables = variables.slice(0, j)
         for (j = 0, length = split.length; j < length; j++) {
-          name = split[j].replace(/^\s+/, '').replace(/\s+$/, '')
+          var name = split[j].replace(/^\s+/, '').replace(/\s+$/, '')
           if ((k = name.indexOf(' as ')) != -1) {
             names[name.slice(0, k)] = name.slice(k + 4)
           } else if (name) {
@@ -127,7 +116,7 @@ function parse (file, modules, texts) {
           }
         }
       }
-      name = variables.slice(0, variables.indexOf(','))
+      var name = variables.slice(0, variables.indexOf(','))
       name = name.replace(/^\s+/, '').replace(/\s+$/, '')
       if (name) {
         defaulted = name
@@ -140,7 +129,7 @@ function parse (file, modules, texts) {
     } else {
       i = 0
     }
-    f = text[i]
+    var f = text[i]
     if (f == '"' || f == "'") {
       text = text.slice(i + 1)
       f = resolve(text.slice(0, text.indexOf(f)), file)
@@ -156,10 +145,10 @@ function parse (file, modules, texts) {
       }
     }
   }
-  dependencies = false
-  mods = []
-  for (i = 0, length = order.length; i < length; i++) {
-    f = order[i]
+  var dependencies = false
+  var mods = []
+  for (var i = 0, length = order.length; i < length; i++) {
+    var f = order[i]
     if (!(f in texts)) {
       mods.push(f)
       if (!(f in modules)) {
@@ -171,8 +160,8 @@ function parse (file, modules, texts) {
     modules[file] = mods
     return
   }
-  declares = ['async', 'class', 'const', 'default', 'function', 'let', 'var']
-  defines = ['\n', ' ', '(', ',', '.', '[']
+  var declares = ['async', 'class', 'const', 'default', 'function', 'let', 'var']
+  var defines = ['\n', ' ', '(', ',', '.', '[']
   text = texta
   while ((i = text.indexOf('export ')) != -1) {
     text = text.slice(i + 7)
@@ -180,20 +169,20 @@ function parse (file, modules, texts) {
       continue
     }
     for (i = 0; i < 7; i++) {
-      name = declares[i]
+      var name = declares[i]
       j = text.indexOf(name)
       if (j != -1 && j < 3) {
         text = text.slice(j + name.length)
       }
     }
     if ((i = text.indexOf('\n')) != -1) {
-      variables = text.slice(0, i)
+      var variables = text.slice(0, i)
       i = 0
-      length = variables.length
+      var length = variables.length
       while (i < length && variables[i] == ' ') {
         i += 1
       }
-      split = []
+      var split = []
       if (i < length && variables[i] == '{') {
         variables = variables.slice(i + 1)
         split = variables.slice(0, variables.indexOf('}')).split(',')
@@ -215,7 +204,7 @@ function parse (file, modules, texts) {
         }
       }
       for (i = 0, length = split.length; i < length; i++) {
-        name = split[i]
+        var name = split[i]
         while (defines.indexOf(name[0]) != -1) {
           name = name.slice(1)
         }
@@ -228,12 +217,12 @@ function parse (file, modules, texts) {
       }
     }
   }
-  defaulted = ''
+  var defaulted = ''
   text = texta
-  for (f in exports) {
-    path = f.slice(0, -3)
-    split = path.split('')
-    for (i = 0, length = split.length; i < length; i++) {
+  for (var f in exports) {
+    var path = f.slice(0, -3)
+    var split = path.split('')
+    for (var i = 0, length = split.length; i < length; i++) {
       if (base64.indexOf(split[i]) == -1) {
         split[i] = '_'
       }
@@ -242,21 +231,31 @@ function parse (file, modules, texts) {
     if (f == file) {
       defaulted = path
     }
-    exported = exports[f]
-    for (named in exported) {
-      name = exported[named]
-      if (f in defaults && defaults[f] == name) {
-        text = substitute(name, '_' + path, text)
-      } else {
-        text = substitute(name, named + '_' + path, text)
+    var exported = exports[f]
+    for (var named in exported) {
+      var name = exported[named]
+      var next = '_' + path
+      if (defaults[f] != name) {
+        next = named + next
+      }
+      i = text.indexOf(name)
+      j = name.length
+      k = next.length
+      while (i != -1) {
+        if (base64.indexOf(text[i + j]) != -1 || (i != 0 && (base64 + '"\'.').indexOf(text[i - 1]) != -1)) {
+          i = text.indexOf(name, i + j)
+        } else {
+          text = text.slice(0, i) + next + text.slice(i + j)
+          i = text.indexOf(name, i + k)
+        }
       }
     }
   }
   lines = text.split('\n')
   text = ''
-  for (i = 0, length = lines.length; i < length; i++) {
-    line = lines[i]
-    a = line.replace(/^\s+/, '')
+  for (var i = 0, length = lines.length; i < length; i++) {
+    var line = lines[i]
+    var a = line.replace(/^\s+/, '')
     if (a.indexOf('export default ') == 0) {
       line = '_' + defaulted + ' = ' + a.slice(15)
     } else if (a.indexOf('export ') == 0) {
@@ -276,10 +275,10 @@ function parse (file, modules, texts) {
 function build (file, output) {
   file = file || 'a/a.js'
   output = output || 'a/y.js'
-  imported = []
-  imports = [file]
-  modules = {}
-  texts = {}
+  var imported = []
+  var imports = [file]
+  var modules = {}
+  var texts = {}
   while (imports.length != 0) {
     file = imports[0]
     if (imported.indexOf(file) != -1) {
@@ -295,9 +294,26 @@ function build (file, output) {
       }
     }
   }
-  text = ''
-  for (i = 0, length = imported.length; i < length; i++) {
+  var text = ''
+  for (var i = 0, length = imported.length; i < length; i++) {
     text += texts[imported[i]]
+  }
+  text = text.slice(0, -1)
+  if (output.slice(-5) == '.html') {
+    text = '<!doctype html><html><body><script>' + text + '</script></body></html>'
+    if (fs.existsSync(output) && fs.lstatSync(output).isFile()) {
+      var t = fs.readFileSync(output, 'utf8')
+      var i = t.indexOf('<script')
+      var j = t.indexOf('</script')
+      if (i == -1 || j == -1) {
+        i = t.indexOf('</body')
+        if (i != -1) {
+          text = t.slice(0, i) + text.slice(27, -14) + t.slice(i)
+        }
+      } else {
+        text = t.slice(0, i) + text.slice(27, -14) + t.slice(j + 9)
+      }
+    }
   }
   fs.writeFileSync(output, text)
 }
