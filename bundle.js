@@ -10,19 +10,19 @@ function resolve (f, file) {
     file = file.slice(0, file.lastIndexOf('/'))
   }
   f = file.slice(0, file.lastIndexOf('/')) + '/' + f
-  var treats = ['', '/', '', '', '/', '\\', '']
-  var tricks = ['~', ':', './', '.\\', '//', '\\\\', '../']
-  for (var i = 0, length = treats.length; i < length; i++) {
-    var treat = treats[i]
-    var trick = tricks[i]
-    while (f.indexOf(trick) != -1) {
-      f = f.replaceAll(trick, treat)
-    }
+  var i = 0
+  var treats = ['', '/', '', '', '', '', '/']
+  var tricks = [':', '\\', '~', '..', './', '//']
+  for (var length = treats.length - 1; i < length; i++) {
+    f = f.replaceAll(tricks[i], treats[i])
   }
-  var i = f[0]
-  while (i == '/' || i == '\\') {
+  var treat = treats[i]
+  var trick = tricks[i]
+  while (f.indexOf(trick) != -1) {
+    f = f.replaceAll(trick, treat)
+  }
+  if (f[0] == '/') {
     f = f.slice(1)
-    i = f[0]
   }
   if (f.slice(-3) != '.js') {
     f += '.js'
